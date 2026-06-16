@@ -2,7 +2,9 @@
 
 A small Wi-Fi streaming project for the Waveshare ESP32-S3 touch AMOLED watch.
 
-The watch firmware reads the QMI8658 IMU and sends accelerometer and gyroscope measurements over UDP to a laptop. A Python receiver script listens on UDP port 9000, prints the live stream, and can also save the data to CSV.
+The watch firmware reads the QMI8658 IMU, shows status on the display, and sends accelerometer and gyroscope measurements over UDP to a laptop. A built-in Wi-Fi setup portal lets you configure network credentials without hardcoded values.
+
+A Python receiver script listens on UDP port 9000, prints the live stream, and can also save the data to CSV.
 
 ## Project structure
 
@@ -27,14 +29,11 @@ The watch firmware reads the QMI8658 IMU and sends accelerometer and gyroscope m
 
 ## Firmware configuration
 
-Open `src/main.cpp` and update the Wi-Fi and laptop settings:
+The current firmware uses a Wi-Fi setup portal instead of hardcoded SSID and password values.
 
-```cpp
-const char *WIFI_SSID = "iPhone van Sofie";
-const char *WIFI_PASS = "lololol320";
-const char *LAPTOP_IP = "172.20.10.2"; // your laptop IP on the same network
-const uint16_t LAPTOP_PORT = 9000;
-```
+If you hold the boot button while powering on the watch, it will reset saved Wi-Fi settings and start the portal access point `WatchIMU-Setup` with password `watch1234`.
+
+Then open `http://192.168.4.1` in a browser to select your network and save credentials.
 
 Also confirm the I2C pins match your board:
 
@@ -42,6 +41,8 @@ Also confirm the I2C pins match your board:
 #define IIC_SDA 15
 #define IIC_SCL 14
 ```
+
+The watch broadcasts UDP packets to the entire subnet, so no specific laptop IP is required.
 
 ## Data format
 
@@ -74,10 +75,10 @@ The script prints live messages and writes `log.csv` if a filename is provided.
 
 ## Building and uploading firmware
 
-Use PlatformIO from the project root:
+Use PlatformIO from the project root. First, find your USB port (e.g., `/dev/ttyACM0` on Linux/Mac or `COM3` on Windows), then:
 
 ```bash
-pio run --target upload
+~/.platformio/penv/bin/pio run -t upload --upload-port /dev/ttyACM0
 ```
 
 Then open the serial monitor if you want to watch the boot logs:
@@ -90,7 +91,12 @@ pio device monitor
 
 - Power the watch and connect it to the same Wi-Fi network as your laptop.
 - Start `receiver_wifi.py` before powering on the watch to capture all UDP packets.
-- If packets are missing or the connection fails, verify the `LAPTOP_IP` and port in the firmware match your laptop settings.
+- The watch broadcasts to the subnet, so any device listening on UDP port 9000 will receive the packets.
+- If packets are missing or the connection fails, verify both devices are on the same Wi-Fi network and your firewall allows UDP traffic.
+
+## TODO
+
+- Add touch-screen configuration so Wi-Fi can be set directly from the display instead of the browser portal.
 
 ## License
 
