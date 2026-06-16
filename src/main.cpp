@@ -23,8 +23,9 @@
 // ----------------------- USER CONFIG -----------------------
 const char *WIFI_SSID = "iPhone van Sofie";
 const char *WIFI_PASS = "lololol320";
-const char *LAPTOP_IP = "172.20.10.2"; // <-- your laptop's IP on the same network
-const uint16_t LAPTOP_PORT = 9000;     // must match the Python receiver
+const uint16_t LAPTOP_PORT = 9000; // must match the Python receiver
+// No laptop IP needed — packets are broadcast to the whole subnet, so the
+// receiver picks them up regardless of which address the laptop is given.
 
 // I2C pins for the QMI8658 — COPY THESE from your board demo's pin_config.h.
 // (These are the common Waveshare AMOLED values; confirm against your board.)
@@ -71,8 +72,9 @@ void setup()
         delay(300);
         Serial.print(".");
     }
-    Serial.printf("\nConnected. Watch IP: %s  ->  sending to %s:%u\n",
-                  WiFi.localIP().toString().c_str(), LAPTOP_IP, LAPTOP_PORT);
+    Serial.printf("\nConnected. Watch IP: %s  ->  broadcasting to %s:%u\n",
+                  WiFi.localIP().toString().c_str(),
+                  WiFi.broadcastIP().toString().c_str(), LAPTOP_PORT);
 }
 
 void loop()
@@ -87,7 +89,7 @@ void loop()
                          (unsigned long)millis(),
                          acc.x, acc.y, acc.z, gyr.x, gyr.y, gyr.z);
 
-        udp.beginPacket(LAPTOP_IP, LAPTOP_PORT);
+        udp.beginPacket(WiFi.broadcastIP(), LAPTOP_PORT);
         udp.write((const uint8_t *)buf, n);
         udp.endPacket();
     }
