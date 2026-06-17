@@ -38,6 +38,9 @@
 #define IIC_SCL 14
 #define BOOT_BTN 0 // BOOT = GPIO0, active LOW
 const uint16_t LAPTOP_PORT = 9000;
+
+const char *WIFI_SSID = "iPhone G";     // fallback if no portal setup
+const char *WIFI_PASS = "helloworld"; // fallback if no portal setup
 // -------------------------------------------------------------
 
 // Display objects (CO5300 over QSPI)
@@ -49,6 +52,7 @@ Arduino_CO5300 *gfx = new Arduino_CO5300(
 
 SensorQMI8658 qmi;
 IMUdata acc, gyr;
+
 WiFiUDP udp;
 char buf[128];
 uint32_t lastScreen = 0;
@@ -66,32 +70,32 @@ void field(int y, const char *label, const String &value, uint16_t valColor)
 }
 
 // Called by WiFiManager when it starts the setup access point.
-void onPortal(WiFiManager *)
-{
-    gfx->fillScreen(BLACK);
-    gfx->setTextSize(3);
-    gfx->setTextColor(CYAN);
-    gfx->setCursor(12, 30);
-    gfx->println("Wi-Fi setup");
-    gfx->setTextSize(2);
-    gfx->setTextColor(WHITE);
-    gfx->setCursor(12, 110);
-    gfx->println("1) Join Wi-Fi:");
-    gfx->setTextColor(YELLOW);
-    gfx->setCursor(12, 140);
-    gfx->println("   WatchIMU-Setup");
-    gfx->setTextColor(WHITE);
-    gfx->setCursor(12, 170);
-    gfx->println("   pw: watch1234");
-    gfx->setCursor(12, 220);
-    gfx->println("2) Open in browser:");
-    gfx->setTextColor(YELLOW);
-    gfx->setCursor(12, 250);
-    gfx->println("   192.168.4.1");
-    gfx->setTextColor(WHITE);
-    gfx->setCursor(12, 300);
-    gfx->println("3) Pick network, save");
-}
+// void onPortal(WiFiManager *)
+// {
+//     gfx->fillScreen(BLACK);
+//     gfx->setTextSize(3);
+//     gfx->setTextColor(CYAN);
+//     gfx->setCursor(12, 30);
+//     gfx->println("Wi-Fi setup");
+//     gfx->setTextSize(2);
+//     gfx->setTextColor(WHITE);
+//     gfx->setCursor(12, 110);
+//     gfx->println("1) Join Wi-Fi:");
+//     gfx->setTextColor(YELLOW);
+//     gfx->setCursor(12, 140);
+//     gfx->println("   WatchIMU-Setup");
+//     gfx->setTextColor(WHITE);
+//     gfx->setCursor(12, 170);
+//     gfx->println("   pw: watch1234");
+//     gfx->setCursor(12, 220);
+//     gfx->println("2) Open in browser:");
+//     gfx->setTextColor(YELLOW);
+//     gfx->setCursor(12, 250);
+//     gfx->println("   192.168.4.1");
+//     gfx->setTextColor(WHITE);
+//     gfx->setCursor(12, 300);
+//     gfx->println("3) Pick network, save");
+// }
 
 void setup()
 {
@@ -105,7 +109,7 @@ void setup()
     gfx->fillScreen(BLACK);
     gfx->setTextSize(3);
     gfx->setTextColor(WHITE);
-    gfx->setCursor(12, 40);
+    gfx->setCursor(20, 40);
     gfx->println("Starting...");
 
     // ---- IMU ----
@@ -113,7 +117,7 @@ void setup()
     if (!qmi.begin(Wire, QMI8658_L_SLAVE_ADDRESS, IIC_SDA, IIC_SCL))
     {
         gfx->setTextColor(RED);
-        gfx->setCursor(12, 100);
+        gfx->setCursor(20, 100);
         gfx->println("IMU not found");
         while (1)
             delay(1000);
@@ -129,23 +133,41 @@ void setup()
 
     // ---- Wi-Fi (portal-based, shows instructions on screen) ----
     WiFiManager wm;
-    if (digitalRead(BOOT_BTN) == LOW)
-        wm.resetSettings(); // hold BOOT = reconfigure
-    wm.setAPCallback(onPortal);
-    wm.setConfigPortalTimeout(180);
-    if (!wm.autoConnect("WatchIMU-Setup", "watch1234"))
+    // if (digitalRead(BOOT_BTN) == LOW)
+    //     wm.resetSettings(); // hold BOOT = reconfigure
+    // wm.setAPCallback(onPortal);
+    // wm.setConfigPortalTimeout(180);
+    // if (!wm.autoConnect("WatchIMU-Setup", "watch1234"))
+    // {
+    //     ESP.restart();
+    // }
+
+    WiFi.mode(WIFI_STA);
+    WiFi.begin(WIFI_SSID, WIFI_PASS);
+    Serial.print("Connecting Wi-Fi");
+    while (WiFi.status() != WL_CONNECTED)
     {
-        ESP.restart();
+        delay(300);
+        Serial.print(".");
     }
 
+
+
+
+
+    // Serial.printf("\nConnected. Watch IP: %s  ->  broadcasting to %s:%u\n",
+    //               WiFi.localIP().toString().c_str(),
+    //               WiFi.broadcastIP().toString().c_str(), LAPTOP_PORT);
+    
+
     // ---- Static status layout ----
-    gfx->fillScreen(BLACK);
-    gfx->setTextSize(3);
-    gfx->setTextColor(GREEN);
-    gfx->setCursor(12, 20);
-    gfx->println("Streaming");
-    field(80, "IP:  ", WiFi.localIP().toString(), CYAN);
-    field(112, "->   ", WiFi.broadcastIP().toString() + ":" + String(LAPTOP_PORT), CYAN);
+    // gfx->fillScreen(BLACK);
+    // gfx->setTextSize(3);
+    // gfx->setTextColor(GREEN);
+    // gfx->setCursor(20, 20);
+    // gfx->println("Streaming");
+    // field(80, "IP:  ", WiFi.localIP().toString(), CYAN);
+    // field(112, "->   ", WiFi.broadcastIP().toString() + ":" + String(LAPTOP_PORT), CYAN);
 }
 
 void loop()
@@ -160,6 +182,7 @@ void loop()
                          "%lu,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f\n",
                          (unsigned long)millis(),
                          acc.x, acc.y, acc.z, gyr.x, gyr.y, gyr.z);
+
         udp.beginPacket(WiFi.broadcastIP(), LAPTOP_PORT);
         udp.write((const uint8_t *)buf, n);
         udp.endPacket();
