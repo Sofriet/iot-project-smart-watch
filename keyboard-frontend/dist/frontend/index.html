@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;
+
+    background:
+    linear-gradient(
+    135deg,
+    #6b198b,
+    #764ba2);
+
+    min-height:100vh;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    padding:20px;
+}
+
+.container{
+
+    background:white;
+
+    border-radius:20px;
+
+    box-shadow:
+    0 20px 60px rgba(0,0,0,.3);
+
+    padding:40px;
+
+    max-width:900px;
+    width:100%;
+}
+
+.header{
+
+    text-align:center;
+
+    margin-bottom:30px;
+}
+
+.header h1{
+
+    color:#333;
+
+    font-size:28px;
+
+}
+
+#search-bar{
+
+    width:100%;
+
+    padding:15px;
+
+    font-size:16px;
+
+    border:2px solid #232323;
+
+    border-radius:10px;
+
+    margin-bottom:30px;
+
+    outline:none;
+
+    transition:.3s;
+}
+
+#search-bar:focus{
+
+    border-color:#667eea;
+
+    box-shadow:
+    0 0 10px rgba(102,126,234,.2);
+}
+
+/* Keyboard */
+
+#keyboard{
+
+    display:grid;
+
+    grid-template-columns:
+    repeat(12,1fr);
+
+    gap:8px;
+}
+
+/* Base key */
+
+.key{
+
+    aspect-ratio:1;
+
+    display:flex;
+
+    justify-content:center;
+    align-items:center;
+
+    background:white;
+
+    border:2px solid #d0d0d0;
+
+    border-radius:8px;
+
+    font-size:14px;
+
+    font-weight:900;
+
+    color:#0f0f0f;
+
+    cursor:pointer;
+
+    transition:
+    background .2s,
+    border-color .2s,
+    transform .2s;
+}
+
+.key:hover{
+
+    background:#74089b;
+
+    border-color:#f5f5f5;
+
+    color:#f5f5f5;
+
+    transform:
+    translateY(-2px);
+}
+/* Active quadrant */
+
+.quadrant{
+
+    background:#f3e8ff;
+
+    border-color:#e6cfff;
+}
+
+/* Current selected key */
+
+.quadrant:active{
+
+    background:
+    linear-gradient(
+    135deg,
+    #142779,
+    #542781);
+
+    color:white;
+
+    border-color:#667eea;
+
+    box-shadow:
+    0 4px 12px
+    rgba(102,126,234,.3);
+}
+
+/* Permanent quadrant boundaries */
+
+.q-start{
+
+    border-left:
+    5px solid #764ba2;
+}
+
+.q-end{
+
+    border-right:
+    5px solid #764ba2;
+}
+
+
+.active{
+
+    background:#441157;
+
+    border-color:#f5f5f5;
+
+    color:#f5f5f5;
+
+    transform:
+    translateY(-2px);
+}
+
+.selection{
+
+    background:#441157;
+
+    border-color:#f5f5f5;
+
+    color:#f5f5f5;
+
+    transform:
+    translateY(0);
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="header">
+        <h1><b>Gesture Keyboard</b></h1>
+    </div>
+
+    <input
+        type="text"
+        id="search-bar"
+        placeholder="Text will appear here..."
+        readonly>
+
+    <div id="keyboard"></div>
+
+</div>
+
+<script src="app.js"></script>
+
+</body>
+</html>

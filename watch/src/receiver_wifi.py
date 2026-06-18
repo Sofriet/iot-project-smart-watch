@@ -16,7 +16,7 @@ import sys
 import time
 
 PORT = 9000          # must match LAPTOP_PORT in the firmware
-COLUMNS = ["t_ms", "ax", "ay", "az", "gx", "gy", "gz"]
+COLUMNS = ["sample","t_ms", "ax", "ay", "az", "gx", "gy", "gz"]
 
 
 def main():
@@ -49,7 +49,7 @@ def main():
                 csv_file.write(line + "\n")
 
             n += 1
-            if n % 100 == 0:                       # show running rate
+            if n % 200 == 0:                       # show running rate
                 rate = n / (time.time() - t0)
                 print(f"[{rate:6.1f} Hz] {line}")
     except KeyboardInterrupt:
