@@ -46,8 +46,8 @@
 const uint16_t LAPTOP_PORT = 9000;
 
 // ===================== WIFI =====================
-const char *WIFI_SSID = "iPhone G";
-const char *WIFI_PASS = "helloworld";
+const char *WIFI_SSID = "mehak's iphone";
+const char *WIFI_PASS = "hellohello";
 
 // ===================== DISPLAY =====================
 Arduino_DataBus *bus = new Arduino_ESP32QSPI(
