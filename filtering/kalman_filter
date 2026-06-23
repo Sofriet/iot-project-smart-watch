@@ -6,7 +6,7 @@ from scipy.signal import butter, sosfilt, sosfiltfilt, welch
 
 # Sampling frequency of the watch
 fs = 1000 # Hz
-"update this when we know the exact value from the watch!"
+# update this when we know the exact value from the watch!
 
 # Tremor subtracting Kalman filter for a single axis
 def kalman_filter(signal, fs, f_tremor=5.0, q_gesture=1e-2, q_tremor=1e-4, r=0.05):
@@ -24,7 +24,7 @@ def kalman_filter(signal, fs, f_tremor=5.0, q_gesture=1e-2, q_tremor=1e-4, r=0.0
 
     # Length of signal
     n  = len(signal)
-    t  = np.arange(n) * 
+    t  = np.arange(n) * dt
     F = np.array([
         [1, dt,  0,    0  ],
         [0,  1,  0,    0  ],
@@ -54,13 +54,5 @@ def kalman_filter(signal, fs, f_tremor=5.0, q_gesture=1e-2, q_tremor=1e-4, r=0.0
         gesture_est[k] = x[0]
         tremor_est[k]  = x[2]*np.cos(w*t[k]) + x[3]*np.sin(w*t[k])
  
-    return gesture_est, tremor_est
+    return gesture_est, tremor_est    
 
-
-def butterworth_filter(signal, fs, f_tremor=3.0, order=4, realtime=True):
-    sos = butter(N=order, Wn=f_tremor, btype='low', fs=fs, output='sos')
- 
-    if realtime:
-        return sosfilt(sos, signal)
-    else:
-        return sosfiltfilt(sos, signal)
