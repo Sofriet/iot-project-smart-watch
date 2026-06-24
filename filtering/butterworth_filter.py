@@ -2,8 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.signal import butter, sosfilt, sosfiltfilt, welch
 
-def butterworth_filter(signal, fs, f_tremor=3.0, order=4, realtime=True):
-    sos = butter(N=order, Wn=f_tremor, btype='low', fs=fs, output='sos')
+def butterworth_filter(signal, fs, cutoff=3.0, order=4, realtime=True):
+    sos = butter(N=order, Wn=cutoff, btype='low', fs=fs, output='sos')
  
     if realtime:
         return sosfilt(sos, signal)
