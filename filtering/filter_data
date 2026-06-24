@@ -1,8 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.signal import butter, sosfilt, sosfiltfilt, welch
-from filtering.kalman_filter import kalman_filter
-from filtering.butterworth_filter import butterworth_filter
+from .kalman_filter import kalman_filter
+from .butterworth_filter import butterworth_filter
 
 def filter_data(data, fs=None, tremor_freq=5.0, q_gesture=1e-2, q_tremor=1e-4, r_accel=0.05, gyro_cutoff=3.0, gyro_order=4, realtime=True):
     data = np.asarray(data, dtype=float)
