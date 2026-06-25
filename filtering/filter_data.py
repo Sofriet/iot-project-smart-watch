@@ -1,10 +1,17 @@
+# This is the function to coordinate the entire data
+# Run acceleration data through Butterworth -> Kalman
+# Run gyroscope data through Butterworth
+# Return the 6-axis filtered data
+
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.signal import butter, sosfilt, sosfiltfilt, welch
 from .kalman_filter import kalman_filter
 from .butterworth_filter import butterworth_filter
 
-def filter_data(data, fs=None, tremor_freq=5.0, q_gesture=1e-2, q_tremor=1e-4, r_accel=0.05, gyro_cutoff=3.0, gyro_order=4, realtime=True):
+def filter_data(data, fs=None, tremor_freq=5.0, q_gesture=1e-2, q_tremor=1e-4, r_accel=0.05, accel_cutoff=3.0, accel_order=4,
+                gyro_cutoff=3.0, gyro_order=4, realtime=False):
+ 
     data = np.asarray(data, dtype=float)
  
     if data.ndim != 2 or data.shape[1] != 7:
@@ -13,39 +20,31 @@ def filter_data(data, fs=None, tremor_freq=5.0, q_gesture=1e-2, q_tremor=1e-4, r
             f"[time, ax, ay, az, gx, gy, gz], got shape {data.shape}"
         )
  
-    time   = data[:, 0]
-    accel  = data[:, 1:4]   # columns: ax, ay, az
-    gyro   = data[:, 4:7]   # columns: gx, gy, gz
+    time  = data[:, 0]
+    accel = data[:, 1:4]   # columns: ax, ay, az
+    gyro  = data[:, 4:7]   # columns: gx, gy, gz
  
     # Infer sampling rate from timestamps if not provided
     if fs is None:
         dt = np.median(np.diff(time))
         if dt <= 0:
-            raise ValueError("Could not infer a valid sampling rate from "
-                            "the time column. Pass `fs` explicitly.")
+            raise ValueError(
+                "Could not infer a valid sampling rate from the time column. "
+                "Pass `fs` explicitly."
+            )
         fs = 1.0 / dt
  
-    # --- Filter accelerometer (Kalman, per axis) ---
     accel_filtered = np.zeros_like(accel)
     for i in range(3):
-        accel_filtered[:, i] = kalman_filter(
-            accel[:, i], fs,
-            tremor_freq=tremor_freq,
-            q_gesture=q_gesture,
-            q_tremor=q_tremor,
-            r=r_accel,
-        )
+        # First butterworth
+        butter_stage = butterworth_filter(accel[:, i], fs, cutoff=accel_cutoff, order=accel_order, realtime=realtime,)
+        # Second Kalman
+        accel_filtered[:, i] = kalman_filter(butter_stage, fs, f_tremor=tremor_freq, q_gesture=q_gesture, q_tremor=q_tremor, r=r_accel,)
  
-    # --- Filter gyroscope (Butterworth, per axis) ---
     gyro_filtered = np.zeros_like(gyro)
     for i in range(3):
-        gyro_filtered[:, i] = butterworth_filter(
-            gyro[:, i], fs,
-            cutoff=gyro_cutoff,
-            order=gyro_order,
-            realtime=realtime,
+        gyro_filtered[:, i] = butterworth_filter(gyro[:, i], fs,cutoff=gyro_cutoff,order=gyro_order, realtime=realtime,
         )
  
-    # Filtered data to use for models
     filtered = np.column_stack([time, accel_filtered, gyro_filtered])
     return filtered

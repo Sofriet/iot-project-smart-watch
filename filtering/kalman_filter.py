@@ -22,6 +22,8 @@ def kalman_filter(signal, fs, f_tremor=5.0, q_gesture=1e-2, q_tremor=1e-4, r=0.0
     # Angular frequency of tremors
     w  = 2 * np.pi * f_tremor
 
+    cw, sw = np.cos(w * dt), np.sin(w * dt)
+
     # Length of signal
     n  = len(signal)
     t  = np.arange(n) * dt
@@ -38,7 +40,6 @@ def kalman_filter(signal, fs, f_tremor=5.0, q_gesture=1e-2, q_tremor=1e-4, r=0.0
     P = np.eye(4) * 0.5
 
     gesture_est = np.zeros(n) # filtered gesture signaldt
-    cw, sw = np.cos(w * dt), np.sin(w * dt)
  
     # State transition: constant-velocity gesture + rotating tremor phasor
     tremor_est  = np.zeros(n) # estimated tremor component
@@ -54,5 +55,5 @@ def kalman_filter(signal, fs, f_tremor=5.0, q_gesture=1e-2, q_tremor=1e-4, r=0.0
         gesture_est[k] = x[0]
         tremor_est[k]  = x[2]*np.cos(w*t[k]) + x[3]*np.sin(w*t[k])
  
-    return gesture_est, tremor_est    
+    return gesture_est
 
