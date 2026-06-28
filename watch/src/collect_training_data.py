@@ -64,6 +64,9 @@ GESTURES = [
     ("Un",  "Space"),
     ("CCW", "Backspace"),
     ("CW",  "Autofill"),
+    ("U",   "Rotate D to U"),
+    ("D",   "Rotate U to D"),
+    ("N",   "Neutral")
 ]
 
 # A local per-row index ("sample") is prepended, and the tremor flag appended,
@@ -209,17 +212,20 @@ def save_sample(out_dir, code, label, rows):
 # --------------------------------------------------------------------------- #
 # Menu / status
 # --------------------------------------------------------------------------- #
-def key_for_index(i):
-    """1..9 then 0 for the tenth gesture."""
-    return str((i + 1) % 10)
+KEYS = [
+    "1", "2", "3", "4", "5",
+    "6", "7", "8", "9", "0",
+    "a", "s", "d"
+]
 
+def key_for_index(i):
+    return KEYS[i]
 
 def index_for_key(k):
-    for i in range(len(GESTURES)):
-        if key_for_index(i) == k:
-            return i
-    return None
-
+    try:
+        return KEYS.index(k)
+    except ValueError:
+        return None
 
 def print_menu():
     print("\n  Gestures")
