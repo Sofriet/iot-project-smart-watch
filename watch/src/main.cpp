@@ -46,8 +46,11 @@
 const uint16_t LAPTOP_PORT = 9000;
 
 // ===================== WIFI =====================
-const char *WIFI_SSID = "iPhone van Sofie";
-const char *WIFI_PASS = "lololol320";
+//TODO: Change to your hotspot such that the watch sends data over it
+const char *WIFI_SSID = "mehak's iphone";
+const char *WIFI_PASS = "hellohello";
+// const char *WIFI_SSID = "iPhone van Sofie";
+// const char *WIFI_PASS = "lololol320";
 
 // ===================== DISPLAY =====================
 Arduino_DataBus *bus = new Arduino_ESP32QSPI(
