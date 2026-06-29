@@ -41,7 +41,7 @@ def home():
 async def websocket_endpoint(ws: WebSocket):
     await ws.accept()
 
-    # Real tiem connection with watch
+    # Real time connection with watch
     connected_clients.add(ws)
 
     print("connected")
@@ -50,12 +50,6 @@ async def websocket_endpoint(ws: WebSocket):
         while True:
             # for c in practice:
             await ws.receive_text()        
-            command = COMMANDS.get(c)
-
-            if command:
-                await ws.send_json({"action": command})
-
-            await asyncio.sleep(2)
 
     except WebSocketDisconnect:
         print("WebSocket client disconnected")
