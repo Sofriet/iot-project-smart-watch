@@ -1,5 +1,6 @@
 
 from fastapi import FastAPI, WebSocket
+from pydantic import BaseModel
 from fastapi.responses import HTMLResponse
 from starlette.websockets import WebSocketDisconnect
 import logging
@@ -23,6 +24,14 @@ COMMANDS = {
     "CW": "AUTOFILL",
 }
 
+
+
+# Real time connection with watch
+connected_clients = set()
+class GestureMessage(BaseModel):
+    gesture: str
+
+
 @app.get("/")
 def home():
     return {"status": "running"}
@@ -31,13 +40,16 @@ def home():
 @app.websocket("/ws")
 async def websocket_endpoint(ws: WebSocket):
     await ws.accept()
+
+    # Real tiem connection with watch
+    connected_clients.add(ws)
+
     print("connected")
 
     try:
         while True:
             # for c in practice:
-            c = input("Enter a command (Uw, Ue, Dn, Ds, Dw, De, DUD, Un, CCW, CW): ")
-        
+            await ws.receive_text()        
             command = COMMANDS.get(c)
 
             if command:
@@ -48,6 +60,44 @@ async def websocket_endpoint(ws: WebSocket):
     except WebSocketDisconnect:
         print("WebSocket client disconnected")
 
+
+
+@app.post("/gesture")
+async def receive_gesture(message: GestureMessage):
+
+    gesture = message.gesture
+
+    command = COMMANDS.get(gesture)
+
+    if not command:
+        return {
+            "status": "ignored",
+            "gesture": gesture
+        }
+
+    dead_clients = []
+
+    for ws in connected_clients:
+
+        try:
+            await ws.send_json({
+                "action": command
+            })
+
+        except Exception:
+            dead_clients.append(ws)
+
+    # NEW:
+    # Remove any disconnected frontends
+    for ws in dead_clients:
+        connected_clients.remove(ws)
+
+    return {
+        "status": "sent",
+        "gesture": gesture,
+        "command": command,
+        "clients": len(connected_clients)
+    }
 
 # if __name__ == "__main__":
 
