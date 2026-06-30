@@ -8,7 +8,7 @@ __pycache__/
 # Jupyter Notebook checkpoints
 .ipynb_checkpoints/
 
-# macOS
+# macOS system files
 .DS_Store
 
 # Trained models
