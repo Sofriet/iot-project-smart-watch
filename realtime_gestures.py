@@ -37,6 +37,7 @@ GESTURE_CODES = [
 
 NEUTRAL_LABEL = "N"
 
+# This should send it to the backend
 BACKEND_URL = "http://127.0.0.1:8000/gesture"
 
 # -----------------------------
