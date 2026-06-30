@@ -5,12 +5,23 @@ import numpy as np
 
 from filtering.filter_data import filter_data
 
-RAW_DIR = "watch/src/gesture_data"
-OUT_DIR = "watch/src/gesture_data_filtered"
+RAW_DIR = "watch/training-data/gesture_data_june24_sofie_rightarm_sitting"
+OUT_DIR = "watch/src/sofie_gesture_data_filtered_24"
+
+print("Current working directory:", os.getcwd())
+print("RAW_DIR exists:", os.path.exists(RAW_DIR))
+print("OUT_DIR exists:", os.path.exists(OUT_DIR))
+
+raw_files = glob.glob(
+    os.path.join(RAW_DIR, "**", "*.csv"),
+    recursive=True
+)
+print("CSV files found:", len(raw_files))
+print(raw_files[:5])
 
 os.makedirs(OUT_DIR, exist_ok=True)
 
-for raw_path in glob.glob(os.path.join(RAW_DIR, "*.csv")):
+for raw_path in raw_files:
     df = pd.read_csv(raw_path)
 
     # Expected raw columns:
