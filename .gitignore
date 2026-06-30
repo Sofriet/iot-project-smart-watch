@@ -1,5 +1,15 @@
+# Python virtual environment
 .venv/
-*.keras
+
+# Python cache
 __pycache__/
 *.pyc
+
+# Jupyter Notebook checkpoints
 .ipynb_checkpoints/
+
+# macOS system files
+.DS_Store
+
+# Trained models
+*.keras
