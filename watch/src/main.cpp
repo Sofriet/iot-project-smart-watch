@@ -46,7 +46,7 @@
 const uint16_t LAPTOP_PORT = 9000;
 
 // ===================== WIFI =====================
-const char *WIFI_SSID = "mehak's iphone";
+const char *WIFI_SSID = "mehak iphone";
 const char *WIFI_PASS = "hellohello";
 
 // ===================== DISPLAY =====================
