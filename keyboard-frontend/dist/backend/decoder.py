@@ -92,6 +92,7 @@ async def receive_gesture(message: GestureMessage):
         "command": command,
         "clients": len(connected_clients)
     }
+    print()
 
 # if __name__ == "__main__":
 

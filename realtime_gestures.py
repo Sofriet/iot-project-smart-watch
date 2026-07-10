@@ -14,17 +14,13 @@ import joblib
 from filtering.filter_data import filter_data
 
 
-# -----------------------------
-# Settings
-# -----------------------------
-
-UDP_IP = "0.0.0.0"
+UDP_IP = "0.0.0.0" 
 UDP_PORT = 9000
 
 MODEL_PATH = "CNNGRU-model/gesture_cnn_gru_sliding_128.keras"
 SCALER_PATH = "CNNGRU-model/gesture_scaler_sliding_128.pkl"
 
-WINDOW_SIZE = 192
+WINDOW_SIZE = 128
 PREDICT_EVERY = 16
 
 CONFIDENCE_THRESHOLD = 0.85
@@ -69,6 +65,7 @@ print("Waiting for watch data...")
 
 while True:
     packet, addr = sock.recvfrom(1024)
+    print(f"Received packet from {addr}: {packet.decode('utf-8').strip()}")
     line = packet.decode("utf-8").strip()
 
     try:
@@ -76,12 +73,13 @@ while True:
         # t_ms,ax,ay,az,gx,gy,gz
         parts = line.split(",")
 
-        if len(parts) != 7:
-            continue
+        # if len(parts) != 8:
+        #     continue
 
-        t_ms, ax, ay, az, gx, gy, gz = map(float, parts)
+        kn, t_ms, ax, ay, az, gx, gy, gz = map(float, parts)
 
         buffer.append([t_ms, ax, ay, az, gx, gy, gz])
+        print(f"Buffer size: {len(buffer)}")
         sample_counter += 1
 
     except ValueError:
@@ -120,6 +118,7 @@ while True:
         print("Filtering error:", e)
         continue
 
+    print(f"Filtered data")
     # Keep only ax, ay, az, gx, gy, gz
     window = filtered[:, 1:7]
 
@@ -158,6 +157,8 @@ while True:
             json={"gesture": gesture},
             timeout=0.2
         )
+        print(f"Sent gesture '{gesture}' to backend")
+
     except requests.exceptions.RequestException as e:
         print("Could not send gesture to frontend:", e)
 
