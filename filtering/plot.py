@@ -28,6 +28,11 @@ channels = [
 
 mpl.rcParams['font.family'] = 'serif'
 mpl.rcParams['font.serif'] = ['Times New Roman']  
+mpl.rcParams['axes.titlesize'] = 13
+mpl.rcParams['axes.labelsize'] = 13
+mpl.rcParams['xtick.labelsize'] = 11
+mpl.rcParams['ytick.labelsize'] = 11
+mpl.rcParams['legend.fontsize'] = 11
 
 fig, axes = plt.subplots(6, 1, figsize=(12, 14), sharex=True)
 
@@ -52,12 +57,11 @@ for ax, (col, title) in zip(axes, channels):
     ax.set_title(title)
     ax.grid(True)
 
-axes[0].legend()
 
+axes[0].legend()
 axes[-1].set_xlabel("Time (s)")
+ax.set_xlim(0, 1.35)
 
 plt.suptitle("   ")
-
-plt.tight_layout()
 
 plt.show()
