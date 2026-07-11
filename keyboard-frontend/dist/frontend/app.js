@@ -66,10 +66,12 @@ function handleCommand(cmd) {
 
         case "L_LEFT":
             col = Math.max(0, col - 1);
+            quadrant = Math.floor((col)/3);
             break;
 
         case "L_RIGHT":
             col = Math.min(keyboard[0].length - 1, col + 1);
+            quadrant = Math.floor((col)/3);
             break;
 
         case "L_UP":
@@ -87,7 +89,7 @@ function handleCommand(cmd) {
             break;
 
         case "Q_RIGHT"://make these circular
-            quadrant = (quadrant + 1) % 4;
+            quadrant = ((quadrant) + 1) % 4;
             row = 1;
             col = Math.min(keyboard[0].length - 2, 3*quadrant + 1)
             break;
@@ -96,7 +98,7 @@ function handleCommand(cmd) {
             typed += keyboard[row][col];
             
             if (keyboard[row][col] === "<-") {
-                typed = typed.slice(0, -1);
+                typed = typed.slice(0, -3);
             }
             break;
 

@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 # --------------------------------------------------
 # File to compare
 # --------------------------------------------------
-filename = "Dw_tremor_24.csv"
+filename = "DUD_tremor_1.csv"
 
 RAW_DIR = "watch/src/gesture_data"
 FILTERED_DIR = "watch/src/gesture_data_filtered"
@@ -60,7 +60,6 @@ for ax, (col, title) in zip(axes, channels):
 
 axes[0].legend()
 axes[-1].set_xlabel("Time (s)")
-ax.set_xlim(0, 1.35)
 
 plt.suptitle("   ")
 
