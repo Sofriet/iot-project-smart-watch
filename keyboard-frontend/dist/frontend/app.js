@@ -2,9 +2,9 @@ const socket = new WebSocket("ws://localhost:8000/ws");
 
 
 const keyboard = [
-  [".","Q","W","E","R","T","Y","U","I","O","P","."],
-  [".","A","S","D","F","G","H","J","K","L", "@","."],
-  [".","?","Z","X","C","V","B","N","M",".",",","."]
+  ["!","Q","W","E","R","T","Y","U","I","O","P","<-"],
+  ["?","A","S","D","F","G","H","J","K","L", "@",":"],
+  ["-","?","Z","X","C","V","B","N","M",".",",","/"]
 ];
 
 let quadrant = 1;
@@ -94,14 +94,14 @@ function handleCommand(cmd) {
 
         case "SELECT":
             typed += keyboard[row][col];
+            
+            if (keyboard[row][col] === "<-") {
+                typed = typed.slice(0, -1);
+            }
             break;
 
         case "SPACE":
             typed += " ";
-            break;
-
-        case "BACKSPACE":
-            typed = typed.slice(0, -1);
             break;
     }
 
