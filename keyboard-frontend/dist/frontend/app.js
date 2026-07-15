@@ -85,7 +85,7 @@ function handleCommand(cmd) {
         case "Q_LEFT": //make these circular
             quadrant = (quadrant + 3) % 4;
             row = 1;
-            col = Math.max(1, 3*quadrant - 1)
+            col = Math.max(1, 3*quadrant + 1)
             break;
 
         case "Q_RIGHT"://make these circular

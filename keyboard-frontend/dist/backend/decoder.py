@@ -69,7 +69,6 @@ async def receive_gesture(message: GestureMessage):
             "gesture": gesture
         }
 
-    dead_clients = []
 
     for ws in connected_clients:
 
@@ -79,12 +78,10 @@ async def receive_gesture(message: GestureMessage):
             })
 
         except Exception:
-            dead_clients.append(ws)
+            print("Error sending message to client")
+            connected_clients.remove(ws)
 
-    # NEW:
-    # Remove any disconnected frontends
-    for ws in dead_clients:
-        connected_clients.remove(ws)
+ 
 
     return {
         "status": "sent",

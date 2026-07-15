@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 # --------------------------------------------------
 # File to compare
 # --------------------------------------------------
-filename = "Dw_tremor_24.csv"
+filename = "Ue_no_tremor_9.csv"
 
 RAW_DIR = "watch/src/gesture_data"
 FILTERED_DIR = "watch/src/gesture_data_filtered"

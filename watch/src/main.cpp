@@ -81,13 +81,10 @@ int btnH = 90;
 uint32_t lastTouch = 0;
 uint32_t lastScreen = 0;
 
-// ======================================================
-// FT3168 TOUCH READ (proper FT6x36-style protocol)
-// ======================================================
 bool readTouch(int &x, int &y)
 {
     Wire.beginTransmission(FT3168_ADDR);
-    Wire.write(0x02); // touch status register (standard FT6x36 family)
+    Wire.write(0x02); 
     if (Wire.endTransmission(false) != 0)
         return false;
 
@@ -111,14 +108,13 @@ bool readTouch(int &x, int &y)
     return true;
 }
 
-// ======================================================
 void drawButton()
 {
     gfx->fillRect(btnX, btnY, btnW, btnH,
                   isRecording ? RED : GREEN);
 
     gfx->setTextColor(BLACK);
-    gfx->setTextSize(3);
+    gfx->setTextSize(7);
     gfx->setCursor(btnX + 45, btnY + 32);
 
     gfx->print(isRecording ? "STOP" : "REC");
@@ -163,7 +159,6 @@ void handleTouch()
     }
 }
 
-// ======================================================
 void field(int y, const char *label, const String &value, uint16_t color)
 {
     gfx->fillRect(0, y, LCD_WIDTH, 26, BLACK);
@@ -175,7 +170,6 @@ void field(int y, const char *label, const String &value, uint16_t color)
     gfx->print(value);
 }
 
-// ======================================================
 void setup()
 {
     Serial.begin(115200);

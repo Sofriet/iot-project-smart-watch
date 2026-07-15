@@ -11,7 +11,10 @@ import numpy as np
 import tensorflow as tf
 import joblib
 
-from filtering.filter_data import filter_data
+import matplotlib.pyplot as plt
+import os
+
+from filtering.filter_data import filter_data 
 
 UDP_IP = "0.0.0.0" 
 UDP_PORT = 9000
@@ -45,9 +48,71 @@ NEUTRAL_LABEL = "N"
 # This should send it to the backend
 BACKEND_URL = "http://127.0.0.1:8000/gesture"
 
-# -----------------------------
-# Load model and scaler
-# -----------------------------
+SAVE_SEGMENTS = False
+SEGMENT_DIR = "realtime_segments"
+
+os.makedirs(SEGMENT_DIR, exist_ok=True)
+
+segment_counter = 0
+
+def save_segment_plot(raw, filtered, prediction, confidence, segment_id):
+
+    time_s = raw[:,0]
+
+    fig, axes = plt.subplots(
+        6, 1,
+        figsize=(10, 12),
+        sharex=True
+    )
+
+    labels = [
+        "Accelerometer X",
+        "Accelerometer Y",
+        "Accelerometer Z",
+        "Gyroscope X",
+        "Gyroscope Y",
+        "Gyroscope Z"
+    ]
+
+    for i in range(6):
+
+        axes[i].plot(
+            time_s,
+            raw[:, i+1],
+            label="Raw",
+            alpha=0.6
+        )
+
+        axes[i].plot(
+            time_s,
+            filtered[:, i+1],
+            label="Filtered"
+        )
+
+        axes[i].set_ylabel(labels[i])
+
+        if i == 0:
+            axes[i].legend()
+
+    axes[-1].set_xlabel("Time (s)")
+
+    fig.suptitle(
+        f"Realtime Segment {segment_id}: {prediction} "
+        f"({confidence:.2f})"
+    )
+
+    plt.tight_layout()
+
+    filename = (
+        f"{SEGMENT_DIR}/f0segment_{segment_id}_"
+        f"{prediction}_{confidence:.2f}.png"
+    )
+
+    plt.savefig(filename, dpi=300)
+    plt.close()
+
+    print(f"Saved segment plot: {filename}")
+   
 
 model = tf.keras.models.load_model(MODEL_PATH)
 scaler = joblib.load(SCALER_PATH)
@@ -67,10 +132,6 @@ still_counter = 0
 
 prev_acc_mag = None
 
-
-# -----------------------------
-# UDP setup
-# -----------------------------
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sock.bind((UDP_IP, UDP_PORT))
@@ -92,9 +153,6 @@ def motion_energy(ax, ay, az, gx, gy, gz, prev_acc_mag):
 
     return energy, acc_mag
 
-# -----------------------------
-# Main loop
-# -----------------------------
 
 while True:
     packet, addr = sock.recvfrom(1024)
@@ -102,12 +160,8 @@ while True:
     line = packet.decode("utf-8").strip()
 
     try:
-        # Expected packet:
-        # t_ms,ax,ay,az,gx,gy,gz
-        parts = line.split(",")
 
-        # if len(parts) != 8:
-        #     continue
+        parts = line.split(",")
 
         kn, t_ms, ax, ay, az, gx, gy, gz = map(float, parts)
 
@@ -123,17 +177,12 @@ while True:
             gz,
             prev_acc_mag
         )
-        # sample_counter += 1
 
     except ValueError:
         continue
 
     if len(buffer) < WINDOW_SIZE:
         continue
-
-        ###################################################
-    # Motion segmentation state machine
-    ###################################################
 
     if state == "IDLE":
 
@@ -158,7 +207,6 @@ while True:
 
             still_counter = 0
 
-        # Gesture has ended
         if (
             still_counter >= END_COUNT
             and
@@ -173,16 +221,13 @@ while True:
 
             state = "IDLE"
 
-
-        # if sample_counter % PREDICT_EVERY != 0:
-        #     continue
-
     if state != "PREDICT":
         continue
 
+
+    
     rows = np.array(buffer, dtype=float)
 
-    # Convert t_ms to seconds starting from 0
     time_s = (rows[:, 0] - rows[0, 0]) / 1000.0
 
     imu_data = np.column_stack([
@@ -196,11 +241,11 @@ while True:
     ])
 
     try:
-        # Real-time/causal filtering
+
         filtered = filter_data(
             imu_data,
             fs=None,
-            realtime=True
+            realtime=False
         )
 
     except Exception as e:
@@ -209,6 +254,8 @@ while True:
 
     print(f"Filtered data")
     # Keep only ax, ay, az, gx, gy, gz
+    raw_window = imu_data.copy()
+
     window = filtered[:, 1:7]
 
     # Scale using training scaler
@@ -221,6 +268,18 @@ while True:
     gesture_id = int(np.argmax(probs))
     confidence = float(np.max(probs))
     gesture = GESTURE_CODES[gesture_id]
+
+    if SAVE_SEGMENTS:
+
+        save_segment_plot(
+            raw_window,
+            filtered,
+            gesture,
+            confidence,
+            segment_counter
+        )
+
+    segment_counter += 1
 
     now = time.time()
 
