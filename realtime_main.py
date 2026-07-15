@@ -1,6 +1,3 @@
-# Collect real time data, put it through the filter, put it through the model
-# lowkey all chat <3
-
 import requests
 
 import socket
@@ -23,20 +20,16 @@ MODEL_PATH = "CNNGRU-model/gesture_cnn_gru_sliding_128.keras"
 SCALER_PATH = "CNNGRU-model/gesture_scaler_sliding_128.pkl"
 
 WINDOW_SIZE = 128
-# PREDICT_EVERY = 16
 
 CONFIDENCE_THRESHOLD = 0.80
-# COOLDOWN_SECONDS = 0.7
 
-#chat motion###
-START_THRESHOLD = 1.8      # Motion energy to start a gesture
-END_THRESHOLD = 0.6        # Motion energy considered "still"
+START_THRESHOLD = 1.8    
+END_THRESHOLD = 0.6       
 
-MIN_GESTURE_SAMPLES = 40   # Ignore tiny accidental movements
-END_COUNT = 12             # Number of consecutive "still" samples
+MIN_GESTURE_SAMPLES = 40   
+END_COUNT = 12           
 
 COOLDOWN_SECONDS = 0.35
-####
 
 GESTURE_CODES = [
     "D", "De", "Dn", "Ds", "DUD", "Dw",
@@ -45,86 +38,17 @@ GESTURE_CODES = [
 
 NEUTRAL_LABEL = "N"
 
-# This should send it to the backend
 BACKEND_URL = "http://127.0.0.1:8000/gesture"
 
-SAVE_SEGMENTS = False
-SEGMENT_DIR = "realtime_segments"
 
-os.makedirs(SEGMENT_DIR, exist_ok=True)
-
-segment_counter = 0
-
-def save_segment_plot(raw, filtered, prediction, confidence, segment_id):
-
-    time_s = raw[:,0]
-
-    fig, axes = plt.subplots(
-        6, 1,
-        figsize=(10, 12),
-        sharex=True
-    )
-
-    labels = [
-        "Accelerometer X",
-        "Accelerometer Y",
-        "Accelerometer Z",
-        "Gyroscope X",
-        "Gyroscope Y",
-        "Gyroscope Z"
-    ]
-
-    for i in range(6):
-
-        axes[i].plot(
-            time_s,
-            raw[:, i+1],
-            label="Raw",
-            alpha=0.6
-        )
-
-        axes[i].plot(
-            time_s,
-            filtered[:, i+1],
-            label="Filtered"
-        )
-
-        axes[i].set_ylabel(labels[i])
-
-        if i == 0:
-            axes[i].legend()
-
-    axes[-1].set_xlabel("Time (s)")
-
-    fig.suptitle(
-        f"Realtime Segment {segment_id}: {prediction} "
-        f"({confidence:.2f})"
-    )
-
-    plt.tight_layout()
-
-    filename = (
-        f"{SEGMENT_DIR}/f0segment_{segment_id}_"
-        f"{prediction}_{confidence:.2f}.png"
-    )
-
-    plt.savefig(filename, dpi=300)
-    plt.close()
-
-    print(f"Saved segment plot: {filename}")
-   
 
 model = tf.keras.models.load_model(MODEL_PATH)
 scaler = joblib.load(SCALER_PATH)
 
 buffer = deque(maxlen=WINDOW_SIZE)
 
-# sample_counter = 0
-# last_detection_time = 0
-
 last_detection_time = 0
 
-# Segmentation state
 state = "IDLE"
 
 active_samples = 0
@@ -149,7 +73,7 @@ def motion_energy(ax, ay, az, gx, gy, gz, prev_acc_mag):
     else:
         delta_acc = abs(acc_mag - prev_acc_mag)
 
-    energy = delta_acc + 0.02 * gyro_mag
+    energy = delta_acc + 0.02 * gyro_mag #bcoz scaling
 
     return energy, acc_mag
 
@@ -245,7 +169,7 @@ while True:
         filtered = filter_data(
             imu_data,
             fs=None,
-            realtime=False
+            realtime=False 
         )
 
     except Exception as e:
@@ -253,15 +177,12 @@ while True:
         continue
 
     print(f"Filtered data")
-    # Keep only ax, ay, az, gx, gy, gz
     raw_window = imu_data.copy()
 
     window = filtered[:, 1:7]
 
-    # Scale using training scaler
     window_scaled = scaler.transform(window)
 
-    # Model expects shape: (1, WINDOW_SIZE, 6)
     x = np.expand_dims(window_scaled, axis=0)
 
     probs = model.predict(x, verbose=0)[0]
@@ -269,35 +190,24 @@ while True:
     confidence = float(np.max(probs))
     gesture = GESTURE_CODES[gesture_id]
 
-    if SAVE_SEGMENTS:
-
-        save_segment_plot(
-            raw_window,
-            filtered,
-            gesture,
-            confidence,
-            segment_counter
-        )
-
-    segment_counter += 1
-
     now = time.time()
 
-    # Ignore Neutral
+
+
     if gesture == NEUTRAL_LABEL:
         continue
 
-    # Only output confident predictions
     if confidence < CONFIDENCE_THRESHOLD:
         continue
 
-    # Cooldown prevents the same gesture from printing repeatedly
     if now - last_detection_time < COOLDOWN_SECONDS:
         continue
 
 
     if gesture != "N" and confidence >= CONFIDENCE_THRESHOLD:
         print(f"Detected gesture: {gesture} confidence={confidence:.2f}")
+
+
 
     try:
         requests.post(
